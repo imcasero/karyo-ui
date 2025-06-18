@@ -33,5 +33,3 @@ pnpm install
 - [pnpm](https://pnpm.io/)
 
 ---
-
-Generated
