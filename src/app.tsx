@@ -1,7 +1,14 @@
+import { lazy, LocationProvider, Router, Route } from "preact-iso";
+
 export function App() {
+  const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
+  const Login = lazy(() => import("./pages/Login/Login"));
   return (
-    <>
-      <h1 className="text-7xl font-bold text-blue-500">Hellou</h1>
-    </>
+    <LocationProvider>
+      <Router>
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/login" component={Login} />
+      </Router>
+    </LocationProvider>
   );
 }
