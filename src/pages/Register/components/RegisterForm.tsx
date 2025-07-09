@@ -2,7 +2,6 @@ import { useState } from "preact/hooks";
 import Card from "../../../components/ui/Card";
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
-import FormError from "../../../components/ui/FormError";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordChecks = [
@@ -12,7 +11,21 @@ const passwordChecks = [
   { label: "A symbol", test: (v: string) => /[^A-Za-z0-9]/.test(v) },
 ];
 
-const RegisterForm = () => {
+function validateEmail(value: string): string | undefined {
+  if (!emailRegex.test(value)) return "Invalid email address";
+  return undefined;
+}
+
+function validatePassword(value: string): string[] {
+  return passwordChecks.filter((c) => !c.test(value)).map((c) => c.label);
+}
+
+function validateConfirm(password: string, value: string): string | undefined {
+  if (value !== password) return "Passwords do not match";
+  return undefined;
+}
+
+const useRegisterForm = () => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | undefined>();
   const [password, setPassword] = useState("");
@@ -25,49 +38,71 @@ const RegisterForm = () => {
     confirm: false,
   });
 
-  const validateEmail = (value: string) => {
-    if (!emailRegex.test(value)) return "Invalid email address";
-    return undefined;
+  const handleEmailChange = (e: Event) => {
+    const val = (e.target as HTMLInputElement).value;
+    setEmail(val);
+    setEmailError(validateEmail(val));
   };
 
-  const validatePassword = (value: string) => {
-    // Asegura que el símbolo no sea solo espacio
-    return passwordChecks.filter((c) => !c.test(value)).map((c) => c.label);
-  };
-
-  const validateConfirm = (value: string) => {
-    if (value !== password) return "Passwords do not match";
-    return undefined;
-  };
-
-  // Validación en tiempo real para password
   const handlePasswordChange = (e: Event) => {
     const val = (e.target as HTMLInputElement).value;
     setPassword(val);
     setPasswordErrors(validatePassword(val));
   };
 
-  // Validación en tiempo real para confirm
   const handleConfirmChange = (e: Event) => {
     const val = (e.target as HTMLInputElement).value;
     setConfirm(val);
-    setConfirmError(validateConfirm(val));
+    setConfirmError(validateConfirm(password, val));
   };
 
   const handleBlur = (field: "email" | "password" | "confirm") => {
     setTouched((t) => ({ ...t, [field]: true }));
     if (field === "email") setEmailError(validateEmail(email));
     if (field === "password") setPasswordErrors(validatePassword(password));
-    if (field === "confirm") setConfirmError(validateConfirm(confirm));
+    if (field === "confirm")
+      setConfirmError(validateConfirm(password, confirm));
   };
 
   const isFormValid =
     !validateEmail(email) &&
     validatePassword(password).length === 0 &&
-    !validateConfirm(confirm) &&
+    !validateConfirm(password, confirm) &&
     email &&
     password &&
     confirm;
+
+  return {
+    email,
+    emailError,
+    password,
+    passwordErrors,
+    confirm,
+    confirmError,
+    touched,
+    handleEmailChange,
+    handlePasswordChange,
+    handleConfirmChange,
+    handleBlur,
+    isFormValid,
+  };
+};
+
+const RegisterForm = () => {
+  const {
+    email,
+    emailError,
+    password,
+    passwordErrors,
+    confirm,
+    confirmError,
+    touched,
+    handleEmailChange,
+    handlePasswordChange,
+    handleConfirmChange,
+    handleBlur,
+    isFormValid,
+  } = useRegisterForm();
 
   return (
     <Card>
@@ -78,7 +113,7 @@ const RegisterForm = () => {
           name="email"
           type="email"
           value={email}
-          onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+          onChange={handleEmailChange}
           onBlur={() => handleBlur("email")}
           error={touched.email ? emailError : undefined}
           autoComplete="email"
