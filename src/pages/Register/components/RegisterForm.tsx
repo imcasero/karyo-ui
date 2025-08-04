@@ -113,6 +113,7 @@ const RegisterForm = () => {
 
     try {
       register(email, password);
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Registration failed:", error);
     }
