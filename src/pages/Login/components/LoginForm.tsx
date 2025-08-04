@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import Card from "../../../components/Card";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
+import { useAuth } from "../../../context/AuthContext";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,10 +24,20 @@ const LoginForm = () => {
 
   const isFormValid = !validateEmail(email) && password && email;
 
+  const { login } = useAuth();
+
+  const handleSubmit = (e: Event) => {
+    e.preventDefault();
+    if (isFormValid) {
+      login(email, password);
+      window.location.href = "/dashboard";
+    }
+  };
+
   return (
     <Card>
       <h2 className="text-2xl font-bold mb-2 text-center">Log in</h2>
-      <form className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <Input
           label="Email"
           name="email"

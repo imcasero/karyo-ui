@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import Card from "../../../components/Card";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
+import { useAuth } from "../../../context/AuthContext";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordChecks = [
@@ -104,10 +105,23 @@ const RegisterForm = () => {
     isFormValid,
   } = useRegisterForm();
 
+  const { register } = useAuth();
+
+  const handleSubmit = async (e: Event) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+
+    try {
+      register(email, password);
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
+  };
+
   return (
     <Card>
       <h2 className="text-2xl font-bold mb-2 text-center">Sign up</h2>
-      <form className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <Input
           label="Email"
           name="email"
