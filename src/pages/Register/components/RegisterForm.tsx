@@ -112,7 +112,7 @@ const RegisterForm = () => {
     if (!isFormValid) return;
 
     try {
-      register(email, password);
+      await register(email, password);
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("Registration failed:", error);

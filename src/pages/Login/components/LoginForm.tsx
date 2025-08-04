@@ -26,11 +26,15 @@ const LoginForm = () => {
 
   const { login } = useAuth();
 
-  const handleSubmit = (e: Event) => {
+  const handleSubmit = async (e: Event) => {
     e.preventDefault();
     if (isFormValid) {
-      login(email, password);
-      window.location.href = "/dashboard";
+      try {
+        await login(email, password);
+        window.location.href = "/dashboard";
+      } catch (error) {
+        console.error("Login failed:", error);
+      }
     }
   };
 
