@@ -27,8 +27,8 @@ export class AuthService extends BaseService {
     return this.getCurrentUser();
   }
 
-  async logout(userId: string): Promise<void> {
-    await this.request(`/auth/logout/${userId}`, {
+  async logout(): Promise<void> {
+    await this.request("/auth/logout", {
       method: "POST",
     });
   }

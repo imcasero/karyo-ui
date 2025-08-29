@@ -8,7 +8,7 @@ type AuthContextType = {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
-  logout: (userId: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,13 +51,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = async (userId: string) => {
+  const logout = async () => {
     try {
-      await authService.logout(userId);
-      setUser(null);
+      await authService.logout();
     } catch (error) {
-      console.error("Logout failed:", error);
-      throw error;
+      console.error("Logout API call failed:", error);
+      // Continue with local logout even if server call fails
+    } finally {
+      // Always clear local user state regardless of server response
+      setUser(null);
     }
   };
 
