@@ -1,38 +1,9 @@
-import { useAuth } from "../../context/AuthContext";
+import { StatsCards } from "./components/StatsCards";
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    // No need to manually redirect - ProtectedRoute will handle it
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-4xl font-bold text-blue-600 mb-4 text-center">
-          Dashboard
-        </h1>
-
-        <div className="mb-6">
-          <p className="text-lg text-gray-700 mb-2">
-            Welcome, <span className="font-semibold">{user!.email}</span>!
-          </p>
-          <p className="text-sm text-gray-500">User ID: {user!.id}</p>
-        </div>
-
-        <p className="text-lg text-gray-700 mb-6 text-center">
-          This is your protected dashboard area.
-        </p>
-
-        <button
-          onClick={handleLogout}
-          className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors"
-        >
-          Logout
-        </button>
-      </div>
+    <div className="flex flex-col gap-4 items-center h-screen">
+      <StatsCards />
     </div>
   );
 };
