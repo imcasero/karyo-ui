@@ -7,7 +7,9 @@ interface ProtectedRouteProps {
   component: ComponentType;
 }
 
-export const ProtectedRoute = ({ component: Component }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({
+  component: Component,
+}: ProtectedRouteProps) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -17,6 +19,7 @@ export const ProtectedRoute = ({ component: Component }: ProtectedRouteProps) =>
     }
   }, [user, isLoading, location]);
 
+  // Show loading while checking authentication
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -25,9 +28,15 @@ export const ProtectedRoute = ({ component: Component }: ProtectedRouteProps) =>
     );
   }
 
+  // If not loading and no user, redirect (the useEffect will handle the redirect)
+  // but don't render anything while the redirect happens
   if (!user) {
-    return null;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return <Component />;
-}; 
+};

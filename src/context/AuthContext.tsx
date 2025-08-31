@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       // Always clear local user state regardless of server response
       setUser(null);
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   };
 
