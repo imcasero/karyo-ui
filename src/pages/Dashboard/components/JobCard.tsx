@@ -1,14 +1,5 @@
 import Card from "../../../components/Card";
-
-export interface Job {
-  id: string;
-  position: string;
-  company: string;
-  appliedDate: string;
-  status: "applied" | "interview" | "rejected" | "offer";
-  notes?: string;
-  link?: string;
-}
+import type { Job } from "../../../dto/job";
 
 interface JobCardProps {
   job: Job;
@@ -63,7 +54,7 @@ export const JobCard = ({ job }: JobCardProps) => {
         {/* Header with Position and Company */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            {job.position}
+            {job.title}
           </h3>
           <p className="text-gray-600 font-medium">{job.company}</p>
         </div>
@@ -83,7 +74,14 @@ export const JobCard = ({ job }: JobCardProps) => {
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <span>Applied on {job.appliedDate}</span>
+          <span>
+            Applied on{" "}
+            {new Date(job.applicationDate).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </span>
         </div>
 
         {/* Status Badge */}

@@ -1,11 +1,11 @@
 import { useState } from "preact/hooks";
-import type { Job } from "./JobCard";
+import type { Job } from "../../../dto/job";
 
 interface JobFormData {
   company: string;
-  position: string;
+  title: string;
   link: string;
-  appliedDate: string;
+  applicationDate: string;
   status: Job["status"];
   notes: string;
 }
@@ -18,9 +18,9 @@ interface JobFormProps {
 export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
   const [formData, setFormData] = useState<JobFormData>({
     company: "",
-    position: "",
+    title: "",
     link: "",
-    appliedDate: new Date().toISOString().split("T")[0],
+    applicationDate: new Date().toISOString().split("T")[0],
     status: "applied",
     notes: "",
   });
@@ -38,7 +38,7 @@ export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
 
   const handleSubmit = (e: Event) => {
     e.preventDefault();
-    if (formData.company && formData.position) {
+    if (formData.company && formData.title) {
       onSubmit(formData);
     }
   };
@@ -66,16 +66,16 @@ export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
         </div>
         <div>
           <label
-            htmlFor="position"
+            htmlFor="title"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
             Position
           </label>
           <input
-            id="position"
+            id="title"
             type="text"
-            value={formData.position}
-            onInput={(e) => handleInputChange(e, "position")}
+            value={formData.title}
+            onInput={(e) => handleInputChange(e, "title")}
             placeholder="Job title"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
@@ -105,16 +105,16 @@ export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
-            htmlFor="appliedDate"
+            htmlFor="applicationDate"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
             Application Date
           </label>
           <input
-            id="appliedDate"
+            id="applicationDate"
             type="date"
-            value={formData.appliedDate}
-            onInput={(e) => handleInputChange(e, "appliedDate")}
+            value={formData.applicationDate}
+            onInput={(e) => handleInputChange(e, "applicationDate")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -168,7 +168,7 @@ export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
         </button>
         <button
           type="submit"
-          disabled={!formData.company || !formData.position}
+          disabled={!formData.company || !formData.title}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           Create
