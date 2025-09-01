@@ -1,9 +1,12 @@
+import { useState } from "preact/hooks";
 import { FilterDropdown } from "./components/FilterDropdown";
 import { AddJobButton } from "./components/AddJobButton";
 import { SearchBar } from "./components/SearchBar";
 import { StatsCards } from "./components/StatsCards";
 import { JobsList } from "./components/JobsList";
 import { JobCard, type Job } from "./components/JobCard";
+import { Modal } from "./components/Modal";
+import { JobForm } from "./components/JobForm";
 
 const mockJobs: Job[] = [
   {
@@ -59,6 +62,36 @@ const mockJobs: Job[] = [
 ];
 
 const Dashboard = () => {
+  const [jobs, setJobs] = useState<Job[]>(mockJobs);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleAddJob = (formData: any) => {
+    const newJob: Job = {
+      id: Date.now().toString(),
+      company: formData.company,
+      position: formData.position,
+      appliedDate: new Date(formData.appliedDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+      status: formData.status,
+      notes: formData.notes,
+      link: formData.link || undefined,
+    };
+
+    setJobs((prev) => [newJob, ...prev]);
+    setIsModalOpen(false);
+  };
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="flex flex-col gap-6 h-screen p-6 overflow-y-auto">
       <StatsCards />
@@ -70,16 +103,24 @@ const Dashboard = () => {
           <FilterDropdown />
         </div>
         <div className="flex-shrink-0">
-          <AddJobButton />
+          <AddJobButton onClick={handleOpenModal} />
         </div>
       </div>
       <div className="flex-1">
         <JobsList>
-          {mockJobs.map((job) => (
+          {jobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
         </JobsList>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title="New Application"
+      >
+        <JobForm onSubmit={handleAddJob} onCancel={handleCloseModal} />
+      </Modal>
     </div>
   );
 };
