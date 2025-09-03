@@ -24,6 +24,7 @@ const Dashboard = () => {
 
   const handleAddJob = (formData: any) => {
     const newJob: Job = {
+      id: Math.random().toString(36).substr(2, 9),
       company: formData.company,
       title: formData.title,
       applicationDate: new Date(formData.applicationDate).toLocaleDateString(
@@ -53,6 +54,12 @@ const Dashboard = () => {
     setIsModalOpen(false);
   };
 
+  const handleDeleteJob = (id: string) => {
+    jobsService
+      .deleteJob(id)
+      .then(() => setJobs((prev = []) => prev.filter((job) => job.id !== id)));
+  };
+
   return (
     <div className="flex flex-col gap-6 h-screen p-6 overflow-y-auto">
       <StatsCards />
@@ -70,7 +77,7 @@ const Dashboard = () => {
       <div className="flex-1">
         <JobsList>
           {jobs?.map((job) => (
-            <JobCard key={job.title} job={job} />
+            <JobCard key={job.title} job={job} onDelete={handleDeleteJob} />
           ))}
         </JobsList>
       </div>
