@@ -31,7 +31,7 @@ export class JobsService extends BaseService {
 
   async updateJob(id: string, job: Job): Promise<Job> {
     const updatedJob = await this.request(`/jobs/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(job),
     });
 

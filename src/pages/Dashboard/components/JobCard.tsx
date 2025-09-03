@@ -4,6 +4,7 @@ import type { Job } from "../../../dto/job";
 interface JobCardProps {
   job: Job;
   onDelete: (id: string) => void;
+  onEdit: (job: Job) => void;
 }
 
 const getStatusConfig = (status: Job["status"]) => {
@@ -46,7 +47,7 @@ const getStatusConfig = (status: Job["status"]) => {
   }
 };
 
-export const JobCard = ({ job, onDelete }: JobCardProps) => {
+export const JobCard = ({ job, onDelete, onEdit }: JobCardProps) => {
   const statusConfig = getStatusConfig(job.status);
 
   return (
@@ -119,6 +120,7 @@ export const JobCard = ({ job, onDelete }: JobCardProps) => {
               type="button"
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
               title="Edit"
+              onClick={() => onEdit(job)}
             >
               <svg
                 className="w-4 h-4"
@@ -138,9 +140,7 @@ export const JobCard = ({ job, onDelete }: JobCardProps) => {
               type="button"
               className="p-1 text-gray-400 hover:text-red-500 transition-colors"
               title="Delete"
-              onClick={() => {
-                onDelete(job.id);
-              }}
+              onClick={() => onDelete(job.id)}
             >
               <svg
                 className="w-4 h-4"

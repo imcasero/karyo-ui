@@ -21,6 +21,7 @@ const Dashboard = () => {
 
   const [jobs, setJobs] = useState<Job[]>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
 
   const handleAddJob = (formData: any) => {
     const newJob: Job = {
@@ -47,17 +48,49 @@ const Dashboard = () => {
   };
 
   const handleOpenModal = () => {
+    setEditingJob(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (job: Job) => {
+    setEditingJob(job);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setEditingJob(null);
   };
 
   const handleDeleteJob = (id: string) => {
     jobsService
       .deleteJob(id)
       .then(() => setJobs((prev = []) => prev.filter((job) => job.id !== id)));
+  };
+
+  const handleUpdateJob = (formData: any) => {
+    if (!editingJob) return;
+
+    const updatedJob: Job = {
+      ...editingJob,
+      company: formData.company,
+      title: formData.title,
+      applicationDate: formData.applicationDate,
+      status: formData.status,
+      notes: formData.notes,
+      link: formData.link || undefined,
+    };
+
+    setIsModalOpen(false);
+    jobsService
+      .updateJob(editingJob.id, updatedJob)
+      .then(() =>
+        setJobs(
+          (prev = []) =>
+            prev?.map((job) => (job.id === editingJob.id ? updatedJob : job)) ||
+            []
+        )
+      );
   };
 
   return (
@@ -77,7 +110,12 @@ const Dashboard = () => {
       <div className="flex-1">
         <JobsList>
           {jobs?.map((job) => (
-            <JobCard key={job.title} job={job} onDelete={handleDeleteJob} />
+            <JobCard
+              key={job.id}
+              job={job}
+              onDelete={handleDeleteJob}
+              onEdit={handleOpenEditModal}
+            />
           ))}
         </JobsList>
       </div>
@@ -85,9 +123,13 @@ const Dashboard = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title="New Application"
+        title={editingJob ? "Edit Application" : "New Application"}
       >
-        <JobForm onSubmit={handleAddJob} onCancel={handleCloseModal} />
+        <JobForm
+          job={editingJob}
+          onSubmit={editingJob ? handleUpdateJob : handleAddJob}
+          onCancel={handleCloseModal}
+        />
       </Modal>
     </div>
   );

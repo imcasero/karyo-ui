@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import type { Job } from "../../../dto/job";
 
 interface JobFormData {
@@ -11,11 +11,12 @@ interface JobFormData {
 }
 
 interface JobFormProps {
+  job?: Job | null;
   onSubmit: (data: JobFormData) => void;
   onCancel: () => void;
 }
 
-export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
+export const JobForm = ({ job, onSubmit, onCancel }: JobFormProps) => {
   const [formData, setFormData] = useState<JobFormData>({
     company: "",
     title: "",
@@ -24,6 +25,44 @@ export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
     status: "applied",
     notes: "",
   });
+
+  useEffect(() => {
+    if (job) {
+      // Handle both ISO date strings and display format dates
+      let dateStr: string;
+      try {
+        // If it's already in YYYY-MM-DD format, use it directly
+        if (job.applicationDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          dateStr = job.applicationDate;
+        } else {
+          // Convert from display format or ISO to YYYY-MM-DD
+          dateStr = new Date(job.applicationDate).toISOString().split("T")[0];
+        }
+      } catch {
+        // Fallback to current date if parsing fails
+        dateStr = new Date().toISOString().split("T")[0];
+      }
+
+      setFormData({
+        company: job.company,
+        title: job.title,
+        link: job.link || "",
+        applicationDate: dateStr,
+        status: job.status,
+        notes: job.notes || "",
+      });
+    } else {
+      // Reset form for new job
+      setFormData({
+        company: "",
+        title: "",
+        link: "",
+        applicationDate: new Date().toISOString().split("T")[0],
+        status: "applied",
+        notes: "",
+      });
+    }
+  }, [job]);
 
   const handleInputChange = (e: Event, field: keyof JobFormData) => {
     const target = e.target as
@@ -171,7 +210,7 @@ export const JobForm = ({ onSubmit, onCancel }: JobFormProps) => {
           disabled={!formData.company || !formData.title}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          Create
+          {job ? "Update" : "Create"}
         </button>
       </div>
     </form>
