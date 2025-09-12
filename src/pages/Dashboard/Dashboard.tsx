@@ -28,14 +28,7 @@ const Dashboard = () => {
       id: Math.random().toString(36).substr(2, 9),
       company: formData.company,
       title: formData.title,
-      applicationDate: new Date(formData.applicationDate).toLocaleDateString(
-        "en-US",
-        {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        }
-      ),
+      applicationDate: formData.applicationDate,
       status: formData.status,
       notes: formData.notes,
       link: formData.link || undefined,
@@ -84,13 +77,18 @@ const Dashboard = () => {
     setIsModalOpen(false);
     jobsService
       .updateJob(editingJob.id, updatedJob)
-      .then(() =>
+      .then((updatedJobFromServer) => {
         setJobs(
           (prev = []) =>
-            prev?.map((job) => (job.id === editingJob.id ? updatedJob : job)) ||
-            []
-        )
-      );
+            prev?.map((job) =>
+              job.id === editingJob.id ? updatedJobFromServer : job
+            ) || []
+        );
+      })
+      .catch((error) => {
+        console.error("Failed to update job:", error);
+        setIsModalOpen(true);
+      });
   };
 
   return (

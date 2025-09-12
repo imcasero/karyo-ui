@@ -14,9 +14,15 @@ interface JobFormProps {
   job?: Job | null;
   onSubmit: (data: JobFormData) => void;
   onCancel: () => void;
+  onUpdate?: (id: string, data: JobFormData) => void;
 }
 
-export const JobForm = ({ job, onSubmit, onCancel }: JobFormProps) => {
+export const JobForm = ({
+  job,
+  onSubmit,
+  onCancel,
+  onUpdate,
+}: JobFormProps) => {
   const [formData, setFormData] = useState<JobFormData>({
     company: "",
     title: "",
@@ -78,7 +84,17 @@ export const JobForm = ({ job, onSubmit, onCancel }: JobFormProps) => {
   const handleSubmit = (e: Event) => {
     e.preventDefault();
     if (formData.company && formData.title) {
-      onSubmit(formData);
+      const submitData = {
+        ...formData,
+        applicationDate: new Date(formData.applicationDate).toISOString(),
+      };
+
+      // Decide whether to create or update based on job existence
+      if (job && job.id && onUpdate) {
+        onUpdate(job.id, submitData);
+      } else {
+        onSubmit(submitData);
+      }
     }
   };
 
