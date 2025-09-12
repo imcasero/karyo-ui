@@ -1,7 +1,8 @@
 import { useState, useEffect } from "preact/hooks";
 import type { Job } from "../../../dto/job";
+import { formatDateForAPI } from "../../../utils/dateUtils";
 
-interface JobFormData {
+export interface JobFormData {
   company: string;
   title: string;
   link: string;
@@ -11,64 +12,39 @@ interface JobFormData {
 }
 
 interface JobFormProps {
-  job?: Job | null;
+  initialData?: JobFormData;
   onSubmit: (data: JobFormData) => void;
   onCancel: () => void;
-  onUpdate?: (id: string, data: JobFormData) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
 }
 
 export const JobForm = ({
-  job,
+  initialData,
   onSubmit,
   onCancel,
-  onUpdate,
+  isLoading = false,
+  submitButtonText = "Create",
 }: JobFormProps) => {
-  const [formData, setFormData] = useState<JobFormData>({
-    company: "",
-    title: "",
-    link: "",
-    applicationDate: new Date().toISOString().split("T")[0],
-    status: "applied",
-    notes: "",
-  });
+  const getInitialFormData = (): JobFormData => {
+    if (initialData) {
+      return initialData;
+    }
+    return {
+      company: "",
+      title: "",
+      link: "",
+      applicationDate: new Date().toISOString().split("T")[0],
+      status: "applied",
+      notes: "",
+    };
+  };
+
+  const [formData, setFormData] = useState<JobFormData>(getInitialFormData);
 
   useEffect(() => {
-    if (job) {
-      // Handle both ISO date strings and display format dates
-      let dateStr: string;
-      try {
-        // If it's already in YYYY-MM-DD format, use it directly
-        if (job.applicationDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          dateStr = job.applicationDate;
-        } else {
-          // Convert from display format or ISO to YYYY-MM-DD
-          dateStr = new Date(job.applicationDate).toISOString().split("T")[0];
-        }
-      } catch {
-        // Fallback to current date if parsing fails
-        dateStr = new Date().toISOString().split("T")[0];
-      }
-
-      setFormData({
-        company: job.company,
-        title: job.title,
-        link: job.link || "",
-        applicationDate: dateStr,
-        status: job.status,
-        notes: job.notes || "",
-      });
-    } else {
-      // Reset form for new job
-      setFormData({
-        company: "",
-        title: "",
-        link: "",
-        applicationDate: new Date().toISOString().split("T")[0],
-        status: "applied",
-        notes: "",
-      });
-    }
-  }, [job]);
+    setFormData(getInitialFormData());
+  }, [initialData]);
 
   const handleInputChange = (e: Event, field: keyof JobFormData) => {
     const target = e.target as
@@ -83,24 +59,17 @@ export const JobForm = ({
 
   const handleSubmit = (e: Event) => {
     e.preventDefault();
-    if (formData.company && formData.title) {
+    if (formData.company && formData.title && !isLoading) {
       const submitData = {
         ...formData,
-        applicationDate: new Date(formData.applicationDate).toISOString(),
+        applicationDate: formatDateForAPI(formData.applicationDate),
       };
-
-      // Decide whether to create or update based on job existence
-      if (job && job.id && onUpdate) {
-        onUpdate(job.id, submitData);
-      } else {
-        onSubmit(submitData);
-      }
+      onSubmit(submitData);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Company and Position Row */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
@@ -138,7 +107,6 @@ export const JobForm = ({
         </div>
       </div>
 
-      {/* Job Link */}
       <div>
         <label
           htmlFor="link"
@@ -156,7 +124,6 @@ export const JobForm = ({
         />
       </div>
 
-      {/* Application Date and Status Row */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
@@ -212,7 +179,6 @@ export const JobForm = ({
         />
       </div>
 
-      {/* Action Buttons */}
       <div className="flex justify-end gap-3 pt-4">
         <button
           type="button"
@@ -223,10 +189,10 @@ export const JobForm = ({
         </button>
         <button
           type="submit"
-          disabled={!formData.company || !formData.title}
+          disabled={!formData.company || !formData.title || isLoading}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          {job ? "Update" : "Create"}
+          {isLoading ? "Processing..." : submitButtonText}
         </button>
       </div>
     </form>

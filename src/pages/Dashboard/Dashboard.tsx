@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 import { FilterDropdown } from "./components/FilterDropdown";
 import { AddJobButton } from "./components/AddJobButton";
 import { SearchBar } from "./components/SearchBar";
@@ -6,89 +6,63 @@ import { StatsCards } from "./components/StatsCards";
 import { JobsList } from "./components/JobsList";
 import { JobCard } from "./components/JobCard";
 import { Modal } from "./components/Modal";
-import { JobForm } from "./components/JobForm";
-import type { Job } from "../../dto/job";
-import { JobsService } from "../../services/JobsService";
+import { JobForm, type JobFormData } from "./components/JobForm";
 import { useAuth } from "../../context/AuthContext";
+import { useJobs } from "./hooks/useJobs";
+import { useJobModal } from "./hooks/useJobModal";
+import { ErrorNotification } from "../../components/ErrorNotification";
 
 const Dashboard = () => {
-  const jobsService = useMemo(() => new JobsService(), []);
   const { user } = useAuth();
+  const {
+    jobs,
+    isLoading: jobsLoading,
+    error: jobsError,
+    loadJobs,
+    createJob,
+    updateJob,
+    deleteJob,
+    clearError,
+  } = useJobs();
+
+  const {
+    isModalOpen,
+    editingJob,
+    modalTitle,
+    submitButtonText,
+    initialFormData,
+    openCreateModal,
+    openEditModal,
+    closeModal,
+  } = useJobModal();
 
   useEffect(() => {
-    user?.id ? jobsService.getAllJobs(user.id).then(setJobs) : setJobs([]);
-  }, []);
+    if (user?.id) {
+      loadJobs(user.id);
+    }
+  }, [user?.id, loadJobs]);
 
-  const [jobs, setJobs] = useState<Job[]>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingJob, setEditingJob] = useState<Job | null>(null);
-
-  const handleAddJob = (formData: any) => {
-    const newJob: Job = {
-      id: Math.random().toString(36).substr(2, 9),
-      company: formData.company,
-      title: formData.title,
-      applicationDate: formData.applicationDate,
-      status: formData.status,
-      notes: formData.notes,
-      link: formData.link || undefined,
-    };
-
-    setIsModalOpen(false);
-    jobsService
-      .createJob(newJob)
-      .then((job) => setJobs((prev = []) => [job, ...(prev || [])]));
+  const handleFormSubmit = async (formData: JobFormData) => {
+    try {
+      if (editingJob) {
+        await updateJob(editingJob.id, formData);
+      } else {
+        await createJob(formData);
+      }
+      closeModal();
+    } catch (error) {
+      // Error is handled by the hook, modal stays open
+      console.error("Form submission failed:", error);
+    }
   };
 
-  const handleOpenModal = () => {
-    setEditingJob(null);
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEditModal = (job: Job) => {
-    setEditingJob(job);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingJob(null);
-  };
-
-  const handleDeleteJob = (id: string) => {
-    jobsService
-      .deleteJob(id)
-      .then(() => setJobs((prev = []) => prev.filter((job) => job.id !== id)));
-  };
-
-  const handleUpdateJob = (formData: any) => {
-    if (!editingJob) return;
-
-    const updatedJob: Job = {
-      ...editingJob,
-      company: formData.company,
-      title: formData.title,
-      applicationDate: formData.applicationDate,
-      status: formData.status,
-      notes: formData.notes,
-      link: formData.link || undefined,
-    };
-
-    setIsModalOpen(false);
-    jobsService
-      .updateJob(editingJob.id, updatedJob)
-      .then((updatedJobFromServer) => {
-        setJobs(
-          (prev = []) =>
-            prev?.map((job) =>
-              job.id === editingJob.id ? updatedJobFromServer : job
-            ) || []
-        );
-      })
-      .catch((error) => {
-        console.error("Failed to update job:", error);
-        setIsModalOpen(true);
-      });
+  const handleDeleteJob = async (id: string) => {
+    try {
+      await deleteJob(id);
+    } catch (error) {
+      // Error is handled by the hook
+      console.error("Delete failed:", error);
+    }
   };
 
   return (
@@ -102,17 +76,17 @@ const Dashboard = () => {
           <FilterDropdown />
         </div>
         <div className="flex-shrink-0">
-          <AddJobButton onClick={handleOpenModal} />
+          <AddJobButton onClick={openCreateModal} />
         </div>
       </div>
       <div className="flex-1">
         <JobsList>
-          {jobs?.map((job) => (
+          {jobs.map((job) => (
             <JobCard
               key={job.id}
               job={job}
               onDelete={handleDeleteJob}
-              onEdit={handleOpenEditModal}
+              onEdit={openEditModal}
             />
           ))}
         </JobsList>
@@ -120,15 +94,22 @@ const Dashboard = () => {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title={editingJob ? "Edit Application" : "New Application"}
+        onClose={closeModal}
+        title={modalTitle}
+        size="lg"
       >
         <JobForm
-          job={editingJob}
-          onSubmit={editingJob ? handleUpdateJob : handleAddJob}
-          onCancel={handleCloseModal}
+          initialData={initialFormData}
+          onSubmit={handleFormSubmit}
+          onCancel={closeModal}
+          isLoading={jobsLoading}
+          submitButtonText={submitButtonText}
         />
       </Modal>
+
+      {jobsError && (
+        <ErrorNotification message={jobsError} onClose={clearError} />
+      )}
     </div>
   );
 };
